@@ -1,0 +1,55 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: litellm
+  namespace: litellm
+spec:
+  timeoutSec: 3600
+  connectionDraining:
+    drainingTimeoutSec: 60
+  healthCheck:
+    type: HTTP
+    requestPath: /health/liveliness
+    port: 4000
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: litellm
+  namespace: litellm
+spec:
+  domains:
+    - llm.example.com
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: litellm
+  namespace: litellm
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: MOVED_PERMANENTLY_DEFAULT
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: litellm
+  namespace: litellm
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: litellm-public-ip
+    networking.gke.io/managed-certificates: litellm
+    networking.gke.io/v1beta1.FrontendConfig: litellm
+spec:
+  rules:
+    - host: llm.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: litellm
+                port:
+                  number: 4000
