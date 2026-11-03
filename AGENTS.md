@@ -1,3 +1,41 @@
+# LiteLLM contributor guide
+
+## Install and worktrees
+
+Run commands from the repository root. Install `uv` at the version required by `pyproject.toml`, a supported Python interpreter, `make`, Bash, and the Rust toolchain in `rust-toolchain.toml`. The Python package builds a native Rust extension through Maturin. Dashboard setup also needs Node and npm, with the Node version specified by `ui/litellm-dashboard/.nvmrc` and `package.json`
+
+```bash
+make bootstrap
+```
+
+This installs the locked Python development and proxy dependencies into the worktree's `.venv`, generates the Prisma client, and installs dashboard dependencies. Use `uv run --no-sync` for subsequent Python commands so they keep that environment intact. For the complete test dependency set, run `make install-test-deps`
+
+`t3.json` runs `make bootstrap` when T3 creates a worktree and waits for it to finish before starting the agent. `.worktreeinclude` copies the root `.env` into the new worktree when it exists. Keep `.env` ignored by Git, use development credentials, and never print or commit its contents. Virtual environments and build outputs are regenerated per worktree
+
+## Start the proxy
+
+Use **Start Proxy** in T3 after setup. It loads the root `.env`, binds to `127.0.0.1`, requests two workers with hot reload, and writes detailed output to the ignored `litellm.log`. The default port is `4000`, with `PORT` in `.env` available to avoid collisions between worktrees
+
+The default configuration is `litellm/proxy/dev_config.yaml`. Create the root `.env` if it does not exist, then set `LITELLM_MASTER_KEY` and the credentials required by the configured providers. Set `CONFIG_FILE_PATH` in `.env` to use a local configuration instead. A worktree-relative custom configuration must be created in each worktree or explicitly added to `.worktreeinclude` if Git ignores it
+
+For QA, copy the development configuration and point both `router_settings` and `general_settings.coordination_redis` at the same dedicated Redis instance as described below, then select that file with `CONFIG_FILE_PATH`. The checked-in development configuration does not configure Redis. Use a development database if setting `DATABASE_URL`, since proxy startup can apply migrations. Setup generates the Prisma client but does not provision PostgreSQL or Redis
+
+## Run tests and checks
+
+Use **Run Unit Tests** in T3, or run the existing target directly
+
+```bash
+make test-unit
+```
+
+This installs the full test dependencies, generates the Prisma client, and runs `tests/unit` with pytest. For a focused regression after installing test dependencies, pass the mapped test file or node ID to `uv run --no-sync pytest`, optionally with `-k` to select a case. Provider, proxy, and core utility subsets have dedicated `make test-unit-*` targets listed by `make help`
+
+Read `tests/unit/AGENTS.md` before adding unit tests and the applicable directory instructions for end-to-end tests. `make test` runs the broader `tests/` tree and can require external services or provider credentials. Unit tests do not replace the live before/after proof required below
+
+Run `make check` before committing. For dashboard changes, also follow `ui/litellm-dashboard/AGENTS.md`. Preserve unrelated working-tree edits, follow the existing conventions below, and read more specific `AGENTS.md` files before editing their directories
+
+## Project conventions
+
 Do not write comments unless they are any of:
 - absolutely necessary to explain some very complex business logic (in which case, keep it concise and clear)
 - used as an input for tools to read and act on. For example:

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://t3.codes/schema/t3.json",
+  "scripts": [
+    {
+      "name": "Setup Worktree",
+      "command": "make bootstrap",
+      "icon": "configure",
+      "runOnWorktreeCreate": true,
+      "async": false
+    },
+    {
+      "name": "Start Proxy",
+      "command": "uv run --no-sync --env-file .env bash -o pipefail -c 'python litellm/proxy/proxy_cli.py --config \"${CONFIG_FILE_PATH:-litellm/proxy/dev_config.yaml}\" --host 127.0.0.1 --num_workers 2 --detailed_debug --reload --use_v2_migration_resolver 2>&1 | tee litellm.log'",
+      "icon": "play"
+    },
+    {
+      "name": "Run Unit Tests",
+      "command": "make test-unit",
+      "icon": "test"
+    }
+  ]
+}
