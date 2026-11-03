@@ -1,0 +1,6 @@
+proxy_config:
+  model_list:
+    - model_name: openrouter/*
+      litellm_params:
+        model: openrouter/*
+        api_key: os.environ/OPENROUTER_API_KEY
