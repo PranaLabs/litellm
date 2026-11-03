@@ -1,5 +1,9 @@
 proxy_config:
   model_list:
+    - model_name: openrouter/openai/gpt-6-luna
+      litellm_params:
+        model: openrouter/openai/gpt-6-luna
+        api_key: os.environ/OPENROUTER_API_KEY
     - model_name: openrouter/*
       litellm_params:
         model: openrouter/*

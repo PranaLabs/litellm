@@ -44,6 +44,8 @@ Sign in at `https://$DOMAIN/ui` with username `admin` and the private `UI_PASSWO
 
 For OpenRouter, add `OPENROUTER_API_KEY` to the existing `litellm-runtime` Secret without replacing its other keys. Pass `-f deploy/gke/openrouter-values.yaml` after the base values on every Helm install or upgrade for this profile, alongside any private image or domain overrides. The gateway routes `openrouter/<vendor>/<model>` through that account. Use an exact model ID from OpenRouter's current catalog. The wildcard route does not guarantee that this pinned LiteLLM version lists the entire upstream catalog through `/v1/models`. Issue virtual keys restricted to the models each caller needs. Restart the gateway after rotating its environment-based provider key
 
+The OpenRouter profile also registers `openrouter/openai/gpt-6-luna` explicitly so clients can discover it through `/v1/models`. Add explicit entries for other models that callers need to select from a model picker
+
 Verify `/health/readiness`, rejection of missing and invalid API keys, successful authenticated `/v1/models`, virtual-key permissions and revocation, and a real streaming completion. Check `kubectl -n litellm get pods,pvc` and confirm Redis AOF is enabled. Restart each dependency during a maintenance window and verify its data survives. HTTP health checks alone do not prove inference works
 
 Set `umask 077`, then create a protected PostgreSQL backup with `kubectl -n litellm exec litellm-postgresql-0 -- pg_dump -U litellm -d litellm -Fc > backup.dump`. Encrypt and copy backups off the cluster, and test restoration into a separate database. This profile does not configure automatic backups. Do not delete the namespace or PVCs as a rollback procedure
