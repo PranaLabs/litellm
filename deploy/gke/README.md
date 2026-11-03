@@ -46,6 +46,8 @@ For OpenRouter, add `OPENROUTER_API_KEY` to the existing `litellm-runtime` Secre
 
 The OpenRouter profile also registers `openrouter/openai/gpt-6-luna` explicitly so clients can discover it through `/v1/models`. Include that exact ID in the caller key's `models` allowlist even when the key also grants `openrouter/*`, since this pinned release does not expand that grant for client listings. Add explicit entries for other models that callers need to select from a model picker
 
+For optional request and response archiving in GCS, see [GCS request archive](GCS_ARCHIVE.md). It uses a custom callback and the existing dashboard read-back interface. The default profile keeps body logging disabled
+
 Verify `/health/readiness`, rejection of missing and invalid API keys, successful authenticated `/v1/models`, virtual-key permissions and revocation, and a real streaming completion. Check `kubectl -n litellm get pods,pvc` and confirm Redis AOF is enabled. Restart each dependency during a maintenance window and verify its data survives. HTTP health checks alone do not prove inference works
 
 Set `umask 077`, then create a protected PostgreSQL backup with `kubectl -n litellm exec litellm-postgresql-0 -- pg_dump -U litellm -d litellm -Fc > backup.dump`. Encrypt and copy backups off the cluster, and test restoration into a separate database. This profile does not configure automatic backups. Do not delete the namespace or PVCs as a rollback procedure

@@ -1,0 +1,27 @@
+replicaCount: 1
+strategy:
+  type: Recreate
+  rollingUpdate: null
+envVars:
+  GCS_ARCHIVE_SPOOL_DIR: /var/lib/litellm/archive
+proxy_config:
+  general_settings:
+    store_prompts_in_spend_logs: false
+  litellm_settings:
+    turn_off_message_logging: false
+    request_correlation_in_logs: true
+    callbacks:
+      - gcs_archive_callback.logger
+volumes:
+  - name: archive-spool
+    persistentVolumeClaim:
+      claimName: litellm-archive-spool
+  - name: archive-callback
+    configMap:
+      name: litellm-archive-callback
+volumeMounts:
+  - name: archive-spool
+    mountPath: /var/lib/litellm/archive
+  - name: archive-callback
+    mountPath: /app/gcs_archive_callback.py
+    subPath: gcs_archive_callback.py
