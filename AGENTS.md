@@ -10,13 +10,13 @@ make bootstrap
 
 This installs the locked Python development and proxy dependencies into the worktree's `.venv`, generates the Prisma client, and installs dashboard dependencies. Use `uv run --no-sync` for subsequent Python commands so they keep that environment intact. For the complete test dependency set, run `make install-test-deps`
 
-`t3.json` runs `make bootstrap` when T3 creates a worktree and waits for it to finish before starting the agent. `.worktreeinclude` copies the root `.env` into the new worktree when it exists. Keep `.env` ignored by Git, use development credentials, and never print or commit its contents. Virtual environments and build outputs are regenerated per worktree
+`t3.json` runs `make bootstrap` when T3 creates a worktree and waits for it to finish before starting the agent. No `.env` file is required for this workflow. Virtual environments and build outputs are regenerated per worktree
 
 ## Start the proxy
 
-Use **Start Proxy** in T3 after setup. It loads the root `.env`, binds to `127.0.0.1`, requests two workers with hot reload, and writes detailed output to the ignored `litellm.log`. The default port is `4000`, with `PORT` in `.env` available to avoid collisions between worktrees
+Use **Start Proxy** in T3 after setup. It inherits the process environment, binds to `127.0.0.1`, requests two workers with hot reload, and writes detailed output to the ignored `litellm.log`. The default port is `4000`, with the `PORT` environment variable available to avoid collisions between worktrees
 
-The default configuration is `litellm/proxy/dev_config.yaml`. Create the root `.env` if it does not exist, then set `LITELLM_MASTER_KEY` and the credentials required by the configured providers. Set `CONFIG_FILE_PATH` in `.env` to use a local configuration instead. A worktree-relative custom configuration must be created in each worktree or explicitly added to `.worktreeinclude` if Git ignores it
+The default configuration is `litellm/proxy/dev_config.yaml`. Supply `LITELLM_MASTER_KEY` and any credentials required by the configured providers through the process environment. Set the `CONFIG_FILE_PATH` environment variable to use a local configuration instead. Create worktree-relative custom configurations in each worktree as needed
 
 For QA, copy the development configuration and point both `router_settings` and `general_settings.coordination_redis` at the same dedicated Redis instance as described below, then select that file with `CONFIG_FILE_PATH`. The checked-in development configuration does not configure Redis. Use a development database if setting `DATABASE_URL`, since proxy startup can apply migrations. Setup generates the Prisma client but does not provision PostgreSQL or Redis
 
