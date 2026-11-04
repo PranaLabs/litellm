@@ -2,6 +2,9 @@ replicaCount: 1
 strategy:
   type: Recreate
   rollingUpdate: null
+migrationJob:
+  podLabels:
+    app.kubernetes.io/name: litellm-migrations
 envVars:
   GCS_ARCHIVE_SPOOL_DIR: /var/lib/litellm/archive
 proxy_config:

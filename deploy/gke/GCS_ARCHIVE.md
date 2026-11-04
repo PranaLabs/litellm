@@ -44,6 +44,8 @@ helm upgrade litellm helm/litellm-helm -n litellm \
 
 The PVC is ReadWriteOnce. This overlay uses one replica and the Recreate strategy so an upgrade cannot strand a second pod waiting for the same disk on another node. Upgrades therefore briefly interrupt gateway service. Use a separate spool per replica before scaling across nodes. Preserve the spool PVC during rollback or node replacement. Do not use an `emptyDir` for the queue
 
+The migration job uses a distinct application label so the gateway Service does not route requests to its pod while migrations run. When upgrading the gateway version, run the migration job against an isolated database restore first and verify the previous image still works with the migrated schema before relying on Helm rollback
+
 Keep `store_prompts_in_spend_logs` disabled and `turn_off_message_logging` disabled as shown in the overlay. The overlay enables `request_correlation_in_logs` so supplied session IDs reach the standard payload. Check for database-backed UI settings overriding the YAML. A global or per-request redaction setting can still redact what reaches the callback
 
 The default PostgreSQL spend metadata contains the request ID and owner needed for UI retrieval. Do not remove owner metadata from archived objects. The built-in log detail endpoint checks ownership before returning content to non-admin users. A GCS read failure surfaces as an error rather than an empty body
